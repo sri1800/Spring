@@ -12,7 +12,7 @@ public interface TodoService {
 
 	public TodoDto updateToDo(Long Id,TodoDto todoDto);
 
-	public void deleteToDo(Long id);
+	public TodoDto deleteToDo(Long id);
 	
 	
 }

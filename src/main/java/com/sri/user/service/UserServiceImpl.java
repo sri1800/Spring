@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import com.sri.user.Entity.RoleEntity;
 import com.sri.user.Entity.UserEntity;
+import com.sri.user.Exception.EmailAlreadyExistException;
 import com.sri.user.pojo.UserDto;
 import com.sri.user.repo.RoleRepo;
 import com.sri.user.repo.UserRepo;
@@ -34,7 +35,11 @@ public class UserServiceImpl implements UserService {
 	RoleRepo roleRepo;
 	
 	@Override
-	public UserDto createUser(UserDto userDto) {
+	public UserDto createUser(UserDto userDto) throws EmailAlreadyExistException {
+		
+		UserEntity checkEmail = userRepo.findByEmail(userDto.getEmail());
+		if(checkEmail != null)
+			throw new EmailAlreadyExistException("User with email "+ userDto.getEmail() + " already exist, please use another email");
 		
 		userDto.setUserId(UUID.randomUUID().toString());
 		userDto.setEncrypassword(bCryptPasswordEncoder.encode(userDto.getPassword()));

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.sri.user.Entity.TodoEntity;
+import com.sri.user.Exception.TodoNotFoundException;
 import com.sri.user.pojo.TodoDto;
 import com.sri.user.repo.TodoRepo;
 
@@ -36,9 +37,11 @@ public class TodoServiceImpl implements TodoService {
 	}
 
 	@Override
-	public TodoDto updateToDo(Long id,TodoDto todoDto) {
+	public TodoDto updateToDo(Long id,TodoDto todoDto) throws TodoNotFoundException{
 		Optional<TodoEntity> todoEntity=todorepo.findById(id);
-		if(id==null) return todoDto;
+		if(todoEntity.isEmpty()) {
+			throw new TodoNotFoundException("Todo doesn't exist with id " + id);
+		}
 			TodoEntity todoE=todoEntity.get();
 			todoE.setName(todoDto.getName());
 			todoE.setDescription(todoDto.getDescription());
@@ -51,8 +54,15 @@ public class TodoServiceImpl implements TodoService {
 	}
 
 	@Override
-	public void deleteToDo(Long id) {
-		todorepo.deleteById(id);
+	public TodoDto deleteToDo(Long id) throws TodoNotFoundException {
+		Optional<TodoEntity> todo = todorepo.findById(id);
+		if(todo.isEmpty()) {
+			throw new TodoNotFoundException("Todo doesn't exist with id " + id);
+		}
+		else {
+			todorepo.deleteById(id);
+			return mapper.map(todo,TodoDto.class);
+		}
 	}
 	
 

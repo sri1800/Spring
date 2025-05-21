@@ -6,7 +6,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
@@ -68,9 +67,10 @@ public class TodoController {
 		 
 		 @PreAuthorize("hasRole('ADMIN')")
 		 @DeleteMapping("/{id}")
-		    public ResponseEntity<String> deleteToDo(@PathVariable Long id) {
-			 todoService.deleteToDo(id);
-			 return ResponseEntity.ok().body("Deletion Successfull");
+		    public ResponseEntity<CreateTodoResponseModel> deleteToDo(@PathVariable Long id) {
+			 TodoDto DeletedTodo=todoService.deleteToDo(id);
+			 CreateTodoResponseModel response=mapper.map(DeletedTodo, CreateTodoResponseModel.class);
+			 return ResponseEntity.ok().body(response);
 		    }
 		 
 		
