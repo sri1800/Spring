@@ -1,0 +1,27 @@
+name: to deploy app backend
+on:
+  push:
+    branches:
+      - main
+env:
+  DOCKERHUB_USER: ${{ secrets.DOCKERHUB_USERNAME }}
+  DOCKERHUB_PAT: ${{ secrets.DOCKERHUB_PAT }}
+  DOCKERHUB_TAG: ${{ secrets.DOCKERHUB_TAG }}
+
+jobs:
+  
+  build_jar:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Setup Maven Action
+        uses: s4u/setup-maven-action@v1.18.0
+
+      - name: build_jar
+        run: |
+          ./ mvnw clean package -DskipTests
+          cd ./target
+          ll
+
+
+    
