@@ -32,7 +32,7 @@ jobs:
       #     restore-keys: ${{ inputs.cache-prefix }}${{ runner.os }}-jdk${{ inputs.java-version }}-${{ inputs.java-distribution }}-maven${{ inputs.maven-version }}-
       # # - name: Setup Maven Action
       # #   uses: s4u/setup-maven-action@v1.18.0
-      
+
       - name: Set up Maven
         uses: stCarolas/setup-maven@v5
         with:
@@ -41,7 +41,8 @@ jobs:
 
       - name: build_jar
         run: |
-          # cd /home/runner/work/todoApp/todoApp
+          pwd
+          cd /home/runner/work/todoApp/todoApp
           mvnw clean package -DskipTests
           cd ./target
           ll
