@@ -3,10 +3,6 @@ on:
   push:
     branches:
       - main
-# env:
-#   DOCKERHUB_USER: ${{ secrets.DOCKERHUB_USERNAME }}
-#   DOCKERHUB_PAT: ${{ secrets.DOCKERHUB_PAT }}
-#   DOCKERHUB_TAG: ${{ secrets.DOCKERHUB_TAG }}
 
 jobs:
   
@@ -72,6 +68,18 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKERHUB_TAG }}:latest
+
+  invokerender:
+    needs: dockerimage
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Trigger Render deploy
+        run: |
+          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+          sleep 30
+          echo " service deployed on render at https://sri-todo.onrender.com "
+
 
       
     
