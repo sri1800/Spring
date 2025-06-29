@@ -11,6 +11,6 @@ jobs:
 
       - name: pingurl
         run: |
-          curl -o /dev/null -s -w "%{http_code}\n" https://sri-todo.onrender.com/login
+          curl -o /dev/null -s -w "%{http_code}\n" https://todoapp-backend-r7d0.onrender.com/login
           
     
