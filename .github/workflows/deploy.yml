@@ -19,6 +19,7 @@ jobs:
 
       - name: build_jar
         run: |
+          cd /home/runner/work/todoApp/todoApp
           mvnw clean package -DskipTests
           cd ./target
           ll
