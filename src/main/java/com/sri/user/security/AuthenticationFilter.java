@@ -65,7 +65,19 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter{
 				.signWith(secretKey)
 				.compact();
 		
+		
+//		String jsonResponse = new ObjectMapper().writeValueAsString(userDto.getFname());
+//		response.getWriter().write(jsonResponse); to send response in body we can use map along with this
+//	    response.setContentType("application/json");
+//	    response.setCharacterEncoding("UTF-8");		
+		
+
+	    
+		
 		response.addHeader(SecurityConstants.HEADER_STRING, SecurityConstants.TOKEN_PREFIX+token);
 		response.addHeader(SecurityConstants.USER_ID,userDto.getUserId());
+		response.addHeader(SecurityConstants.FIRST_NAME, userDto.getFname());
+		response.addHeader("Access-Control-Expose-Headers", "SecurityConstants.USER_ID,SecurityConstants.FIRST_NAME");
+		
 	}
 }

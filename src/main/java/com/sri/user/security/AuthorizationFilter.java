@@ -64,11 +64,18 @@ public class AuthorizationFilter extends BasicAuthenticationFilter{
 		
 		String userId=claims.getSubject();
 		
-		if(userId!=null) {
-			UserEntity entity=userRepo.findByUserId(userId);
-			UserPrinciple userPrinciple=new UserPrinciple(entity);
-			return new UsernamePasswordAuthenticationToken(userPrinciple,null,userPrinciple.getAuthorities());
+		if (userId != null) {
+		    UserEntity entity = userRepo.findByUserId(userId);
+		    
+		    if (entity == null) {
+//		        System.out.println("No user found with userId from JWT: " + userId);
+		        return null; 
+		    }
+
+		    UserPrinciple userPrinciple = new UserPrinciple(entity);
+		    return new UsernamePasswordAuthenticationToken(userPrinciple, null, userPrinciple.getAuthorities());
 		}
+
 		return null;
 	}
 	

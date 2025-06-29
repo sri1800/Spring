@@ -1,22 +1,9 @@
 package com.sri.user.shared;
 
-import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
-import java.time.Instant;
-import java.util.Date;
 import java.util.Random;
 
-import javax.crypto.SecretKey;
-
 import org.springframework.stereotype.Component;
-
-import com.sri.user.SpringApplicationContext;
-import com.sri.user.security.AppProperties;
-
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 
 @Component
 public class Utills {

@@ -52,7 +52,7 @@ public class UserController {
 		CreateUserResponseModel response=mapper.map(createdUser, CreateUserResponseModel.class);
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(response);
 	}
-	
+
 	@GetMapping(value="/getAll/{userId}",produces= {MediaType.APPLICATION_JSON_VALUE})
 	public ResponseEntity<UserResponseModel>getUser(@PathVariable("userId")String userId){
 		UserDto userDetails=userService.getUserByUserId(userId);

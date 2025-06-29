@@ -5,19 +5,24 @@ import java.util.Date;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 
 @Entity
-@Table(name="Todo")
+@Table(name="todo")
 public class TodoEntity {
 	
 	@Id
-	@GeneratedValue
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
 	@Column(name="name",nullable=false)
@@ -31,8 +36,21 @@ public class TodoEntity {
 	private Date startTime;
 	
 	@UpdateTimestamp
-	@Column(name="endTime",insertable = false)
+	@Column(name="endTime")
 	private Date endTime;
+	
+	@ManyToOne(cascade = {CascadeType.PERSIST},fetch = FetchType.LAZY)
+	@JoinColumn(name="user_id")
+	private UserEntity users;
+	
+	
+	public UserEntity getUsers() {
+		return users;
+	}
+
+	public void setUsers(UserEntity users) {
+		this.users = users;
+	}
 
 	public Long getId() {
 		return id;

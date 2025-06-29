@@ -1,6 +1,7 @@
 package com.sri.user.Entity;
 
 import java.util.Collection;
+import java.util.List;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -11,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -42,6 +44,9 @@ public class UserEntity {
 				inverseJoinColumns=@JoinColumn(name="roles_id",referencedColumnName="id"))
 	
 	private Collection<RoleEntity> roles;
+	
+	@OneToMany(mappedBy = "users")
+	private List<TodoEntity> todoEntity;
 
 	public long getId() {
 		return id;

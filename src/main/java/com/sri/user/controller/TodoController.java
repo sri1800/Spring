@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,19 +32,15 @@ public class TodoController {
 		@Autowired
 		private ModelMapper mapper;
 		 
-		 @PreAuthorize("hasAnyRole('ADMIN','USER')")
-		 @PostMapping("/createtodo")
-		    public ResponseEntity<CreateTodoResponseModel> createToDo(@Validated @RequestBody CreateTodoRequestModel createTodoRequestModel,Authentication authentication) {
+//		 @PreAuthorize("hasAnyRole('ADMIN','USER')")
+		 @PostMapping("/create")
+		    public ResponseEntity<CreateTodoResponseModel> createToDo(@Validated @RequestBody CreateTodoRequestModel createTodoRequestModel) {
 			 	TodoDto todoDto=mapper.map(createTodoRequestModel, TodoDto.class);
-			 	boolean isAdmin = authentication.getAuthorities().stream().anyMatch(authority->authority.getAuthority().equals("ROLE_ADMIN"));
+//			 	boolean isAdmin = authentication.getAuthorities().stream().anyMatch(authority->authority.getAuthority().equals("ROLE_ADMIN"));
 			 	TodoDto CreatedTodo=todoService.addToDo(todoDto);
-			 	if(isAdmin) {
-			 		CreateTodoResponseModel response=mapper.map(CreatedTodo, CreateTodoResponseModel.class);
-			 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
-			 	}
-			 	else {
-			 		return ResponseEntity.status(HttpStatus.CREATED).build();
-			 	}
+			 	CreateTodoResponseModel response=mapper.map(CreatedTodo, CreateTodoResponseModel.class);
+		 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
+			 	
 		    }
 		 
 		 
@@ -56,8 +51,8 @@ public class TodoController {
 		      return ResponseEntity.ok().body(response);
 		    }
 		 
-		 @PreAuthorize("hasAnyRole('ADMIN','USER')")
-		 @PutMapping("/{id}")
+//		 @PreAuthorize("hasAnyRole('ADMIN','USER')")
+		 @PutMapping("/update/{id}")
 		    public ResponseEntity<CreateTodoResponseModel> updateToDo(@PathVariable Long id, @RequestBody CreateTodoRequestModel createTodoRequestModel) {
 			 	TodoDto todoDto=mapper.map(createTodoRequestModel, TodoDto.class);
 			 	TodoDto UpdatedTodo=todoService.updateToDo(id, todoDto);
@@ -66,12 +61,17 @@ public class TodoController {
 		    }
 		 
 		 @PreAuthorize("hasRole('ADMIN')")
-		 @DeleteMapping("/{id}")
+		 @DeleteMapping("/delete/{id}")
 		    public ResponseEntity<CreateTodoResponseModel> deleteToDo(@PathVariable Long id) {
 			 TodoDto DeletedTodo=todoService.deleteToDo(id);
 			 CreateTodoResponseModel response=mapper.map(DeletedTodo, CreateTodoResponseModel.class);
 			 return ResponseEntity.ok().body(response);
 		    }
 		 
-		
+		@GetMapping("/data/{id}")
+		public ResponseEntity<List<CreateTodoResponseModel>> getATodo(@PathVariable Long id){
+			List<TodoDto> todoDto= todoService.getATodo(id);
+		      List<CreateTodoResponseModel>  response=todoDto.stream().map(todo->mapper.map(todo,CreateTodoResponseModel.class)).toList();
+		      return ResponseEntity.ok().body(response);			
+		}
 }

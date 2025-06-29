@@ -13,6 +13,8 @@ public interface TodoService {
 	public TodoDto updateToDo(Long Id,TodoDto todoDto);
 
 	public TodoDto deleteToDo(Long id);
+
+	public List<TodoDto> getATodo(Long todoId);
 	
 	
 }

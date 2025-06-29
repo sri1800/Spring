@@ -5,18 +5,24 @@ import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.sri.user.Entity.TodoEntity;
 import com.sri.user.Exception.TodoNotFoundException;
 import com.sri.user.pojo.TodoDto;
 import com.sri.user.repo.TodoRepo;
+import com.sri.user.repo.UserRepo;
+import com.sri.user.security.UserPrinciple;
 
 @Service
 public class TodoServiceImpl implements TodoService {
 	
 	@Autowired
 	public TodoRepo todorepo;
+	
+	@Autowired
+	public UserRepo userRepo;
 	
 	@Autowired
 	ModelMapper mapper;
@@ -31,6 +37,9 @@ public class TodoServiceImpl implements TodoService {
 	@Override
 	public TodoDto addToDo(TodoDto todoDto) {
 		TodoEntity todoEntity=mapper.map(todoDto,TodoEntity.class);
+		String userId=((UserPrinciple)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId();
+		
+		todoEntity.setUsers(userRepo.findByUserId(userId));
 		todorepo.save(todoEntity);
 		TodoDto ReturnValue=mapper.map(todoEntity,TodoDto.class);
 		return ReturnValue;
@@ -63,6 +72,13 @@ public class TodoServiceImpl implements TodoService {
 			todorepo.deleteById(id);
 			return mapper.map(todo,TodoDto.class);
 		}
+	}
+
+	@Override
+	public List<TodoDto> getATodo(Long todoId) {
+		Optional<TodoEntity> todoEntities = todorepo.findById(todoId);
+		List<TodoDto> todoDto=todoEntities.stream().map(todo->mapper.map(todo,TodoDto.class)).toList();
+		return todoDto;
 	}
 	
 
