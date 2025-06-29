@@ -23,7 +23,7 @@ jobs:
           java-version: '17'
 
       - name: cache dep
-        uses: actions/cache
+        uses: actions/cache@v2
         with:
           path: |
             ${{ inputs.cache-path }}
