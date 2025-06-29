@@ -53,8 +53,9 @@ jobs:
 
       - name: jar download
         uses: actions/download-artifact@v4.3.0
-        name: todobackendjarfile
-        path: /home/runner/work/todoApp/todoApp
+        with:
+          name: todobackendjarfile
+          path: /home/runner/work/todoApp/todoApp
 
       - name: login to dockerhub
         uses: docker/login-action@v3.4.0
