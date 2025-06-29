@@ -1,0 +1,16 @@
+name: keep render alive
+on:
+  workflow_dispatch:
+  schedule: 
+        - cron: '*/5 * * * *'
+
+jobs:
+  pingurl:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: pingurl
+        run: |
+          curl -o /dev/null -s -w "%{http_code}\n" https://sri-todo.onrender.com/login
+          
+    
