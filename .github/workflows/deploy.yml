@@ -27,14 +27,23 @@ jobs:
         with:
           maven-version: 3.9.9
 
-
       - name: build_jar
         run: |
-          pwd
           cd /home/runner/work/todoApp/todoApp
           mvn clean package -DskipTests
           cd ./target
           ls -lrt
+
+      - name: jar upload
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: todobackendjarfile
+          path: /home/runner/work/todoApp/todoApp/target/UserSpringSecurity-0.0.1-SNAPSHOT.jar
+          if-no-files-found: error
+          retention-days: 7
+  # dockerimage:
+  #   needs: build_jar
+  #   runs-on 
 
 
     
