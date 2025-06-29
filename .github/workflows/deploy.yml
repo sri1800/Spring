@@ -43,7 +43,7 @@ jobs:
         run: |
           pwd
           cd /home/runner/work/todoApp/todoApp
-          mvnw clean package -DskipTests
+          mvn clean package -DskipTests
           cd ./target
           ll
 
