@@ -19,7 +19,7 @@ jobs:
 
       - name: build_jar
         run: |
-          ./ mvnw clean package -DskipTests
+          mvnw clean package -DskipTests
           cd ./target
           ll
 
