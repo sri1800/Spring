@@ -25,6 +25,10 @@ jobs:
       - name: run play
         run: |
           cd /home/ec2-user/actions-runner/_work/todoApp_backend/todoApp_backend
+          docker version
+          which docker
+          docker compose version
+          echo $PATH
           sudo ansible-playbook bluegreen_play.yml
           # sleep 10
           # sudo docker compose up -d
