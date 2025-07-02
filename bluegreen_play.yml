@@ -18,13 +18,13 @@
     - name: start docker
       systemd_service:
         name: docker
-        state: started
+        state: restarted
       #notify_handler: run_containers
 
     - name: start nginx
       service:
         name: nginx
-        state: started
+        state: restarted
       #notify_handler: nginx_setup
 
   # handlers: 
