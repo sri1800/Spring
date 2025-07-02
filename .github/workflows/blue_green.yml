@@ -14,8 +14,8 @@ jobs:
 
       - name: setup localhost in ansible
         run: |
-          touch /etc/ansible/hosts
-          echo "$(hostname -i) ansible_connection=local" >> /etc/ansible/hosts
+          sudo touch /etc/ansible/hosts
+          sudo echo "$(hostname -i) ansible_connection=local" >> /etc/ansible/hosts
       
       - name: checkout repo
         uses: actions/checkout@v4
