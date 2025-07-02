@@ -19,13 +19,13 @@
       systemd_service:
         name: docker
         state: restarted
-      notify_handler: run_containers
+      notify: run_containers
 
     - name: start nginx
       service:
         name: nginx
         state: restarted
-      notify_handler: nginx_setup
+      notify: nginx_setup
 
   handlers: 
 
@@ -36,3 +36,9 @@
       copy:
         src: ./nginxapp.conf
         dest: /etc/nginx/conf.d/app.conf
+      notify: reload_nginx
+
+    - name: reload_nginx
+      service:
+        name: nginx
+        state: reloaded
