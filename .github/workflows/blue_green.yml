@@ -22,6 +22,8 @@ jobs:
       - name: checkout repo
         uses: actions/checkout@v4
 
+      
+
       - name: run play
         run: |
           cd /home/ec2-user/actions-runner/_work/todoApp_backend/todoApp_backend

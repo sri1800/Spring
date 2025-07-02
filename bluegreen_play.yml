@@ -30,7 +30,7 @@
   handlers: 
 
     - name: run_containers
-      command: docker compose up -d
+      command: /usr/local/lib/docker/cli-plugins/docker-compose up -d
 
     - name: nginx_setup
       copy:
