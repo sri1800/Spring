@@ -26,10 +26,10 @@ jobs:
         run: |
           cd /home/ec2-user/actions-runner/_work/todoApp_backend/todoApp_backend
           sudo ansible-playbook bluegreen_play.yml
-          sleep 10
-          sudo docker compose up -d
-          sudo touch /etc/nginx/conf.d/app.conf
-          sudo cp ./nginxapp.conf /etc/nginx/conf.d/app.conf
+          # sleep 10
+          # sudo docker compose up -d
+          # sudo touch /etc/nginx/conf.d/app.conf
+          # sudo cp ./nginxapp.conf /etc/nginx/conf.d/app.conf
           sudo nginx -s reload
 
 
