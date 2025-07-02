@@ -4,6 +4,8 @@ on:
     branches:
       - main
 
+  workflow_dispatch:
+
 jobs:
   ansible_setup:
     runs-on: self-hosted
