@@ -1,0 +1,32 @@
+name: deploy bluegreen
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  ansible_setup:
+    runs-on: self-hosted
+    steps:
+
+      - name: download ansible
+        run: sudo yum install ansible -y
+
+      - name: setup localhost in ansible
+        run: |
+          touch /etc/ansible/hosts
+          echo "$(hostname -i) ansible_connection=local" >> /etc/ansible/hosts
+      
+      - name: checkout repo
+        uses: actions/checkout@v4
+
+      - name: run play
+        run: |
+            pwd
+          # sudo ansible-playbook bluegreen_play.yml
+          # sudo docker compose up -d
+          # sudo touch /etc/nginx/conf.d/app.conf
+          # sudo cp ./app.conf /etc/nginx/conf.d/app.conf
+          # sudo nginx -s reload
+
+

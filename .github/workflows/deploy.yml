@@ -1,8 +1,9 @@
 name: to deploy app backend
 on:
-  push:
-    branches:
-      - main
+  # push:
+  #   branches:
+  #     - main
+  workflow_dispatch:
 
 jobs:
   
@@ -67,18 +68,18 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKERHUB_TAG }}:latest
+          tags: ${{ secrets.DOCKERHUB_TAG }}:{{ github.sha }}
 
-  invokerender:
-    needs: dockerimage
-    runs-on: ubuntu-latest
-    steps:
+  # invokerender:
+  #   needs: dockerimage
+  #   runs-on: ubuntu-latest
+  #   steps:
 
-      - name: Trigger Render deploy
-        run: |
-          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
-          sleep 30
-          echo " service deployed on render at https://sri-todo.onrender.com "
+  #     - name: Trigger Render deploy
+  #       run: |
+  #         curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+  #         sleep 30
+  #         echo " service deployed on render at https://sri-todo.onrender.com "
 
 
       

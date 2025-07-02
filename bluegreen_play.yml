@@ -1,0 +1,38 @@
+---
+
+- name: install required softwares
+  hosts: all
+  become: true
+  vars:
+    pkgs: [docker.io,nginx]
+
+  tasks:
+
+    - name: install pkgs
+      yum:
+        name: "{{item}}"
+        state: present
+      loop: "{{pkgs}}"
+
+
+    - name: start docker
+      systemd_service:
+        name: docker
+        state: started
+      #notify_handler: run_containers
+
+    - name: start nginx
+      service:
+        name: nginx
+        state: started
+      #notify_handler: nginx_setup
+
+  # handlers: 
+
+  #   - name: run_containers
+  #     command: docker compose up -d
+
+  #   - name: nginx_setup
+  #     copy:
+  #       src: ./nginxapp.conf
+  #       dest: /etc/nginx/conf.d/app.conf
