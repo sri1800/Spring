@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  ansible_setup:
+  server_setup:
     runs-on: self-hosted
     steps:
 
@@ -21,21 +21,86 @@ jobs:
       
       - name: checkout repo
         uses: actions/checkout@v4
-
-      
+ 
 
       - name: run play
         run: |
           cd /home/ec2-user/actions-runner/_work/todoApp_backend/todoApp_backend
-          sudo docker version
-          sudo which docker
-          sudo docker compose version
-          sudo echo $PATH
           sudo ansible-playbook bluegreen_play.yml
-          # sleep 10
-          # sudo docker compose up -d
-          # sudo touch /etc/nginx/conf.d/app.conf
-          # sudo cp ./nginxapp.conf /etc/nginx/conf.d/app.conf
-          # sudo nginx -s reload
+          sleep 10
+          
+      - name: identify active port
+        run: |
+          active=$(grep "808[12]" nginxapp.conf | cut -d: -f2 | tr -d ";")
+          if [[ "$active" = "8081" ]];then 
+            target="8082"
+          else
+            target="8081"
+          fi
+
+          echo "ACTIVE_PORT=$active" >> $GITHUB_ENV
+          echo "TARGET_PORT=$target" >> $GITHUB_ENV
+
+
+      - name: deploy on target
+        run: |
+          docker pull sri1800/todo_app:latest
+          docker run -d --name web_app_$TARGET_PORT --env-file ./var.env -p $TARGET_PORT:8081 sri1800/todo_app:latest
+          
+
+  get_approval:
+    needs: server_setup
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    steps:
+
+      - name: approve 
+        run: echo "approve port switch"
+
+
+
+  nginx_reload:
+    needs: get_approval
+    runs-on: self-hosted
+    steps:
+
+      - name: port edit
+        run: |
+          sudo sed -i "s/$ACTIVE_PORT/$TARGET_PORT/g" /etc/nginx/conf.d/app.conf
+          sudo service nginx reload
+          echo " serving on new port "
+
+  manualtestapprove:
+    needs: nginx_reload
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+
+    steps:
+      - name: manualtestapproval
+        run: echo "approve if testok , reject if testko"
+
+  killcontainer:
+    needs: manualtestapprove
+    runs-on: self-hosted
+    steps:
+
+      - name: if testok 
+        run: |
+          sudo docker stop web_app_$ACTIVE_PORT 
+          sudo docker rm web_app_$ACTIVE_PORT
+
+      - name: if testko
+        run: |
+          sudo docker stop web_app_$TARGET_PORT
+          sudo docker rm web_app_$TARGET_PORT
+          echo "killed faulty container reverting nginx to old"
+          sudo sed -i "s/$TARGET_PORT/$ACTIVE_PORT/g" /etc/nginx/conf.d/app.conf
+          sudo service nginx reload
+          echo " serving on old port "
+
+
+  
 
 
