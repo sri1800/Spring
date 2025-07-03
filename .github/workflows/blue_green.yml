@@ -35,7 +35,7 @@ jobs:
       - name: identify active port
         id: identify
         run: |
-          active=$(grep "808[12]" /etc/nginx/conf.d/app.conf | cut -d: -f2 | tr -d ";")
+          active=$(sudo grep "808[12]" /etc/nginx/conf.d/app.conf | cut -d: -f2 | tr -d ";")
           if [[ "$active" = "8081" ]];then 
             target="8082"
           else
