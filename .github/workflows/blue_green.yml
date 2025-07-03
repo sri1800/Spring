@@ -45,8 +45,9 @@ jobs:
           echo "Switch target port: '$target'"
           sudo docker pull sri1800/todo_app:latest
           sudo docker run -d --name web_app_$target --env-file ./var.env -p $target:8081 sri1800/todo_app:latest  
-          sudo echo "active=$active" >> $GITHUB_OUTPUT
-          sudo echo "target=$target" >> $GITHUB_OUTPUT
+          sudo /bin/bash -c "echo \"active=$active\" >> $GITHUB_OUTPUT"
+          sudo /bin/bash -c "echo \"target=$target\" >> $GITHUB_OUTPUT"
+
           sleep 20
 
           echo "approve port switch"
