@@ -32,7 +32,7 @@ jobs:
           sudo ansible-playbook bluegreen_play.yml
           sleep 10
           
-      - name: identify active port
+      - name: identify active port and start container
         id: identify
         run: |
           active=$(sudo grep "808[12]" /etc/nginx/conf.d/app.conf | cut -d: -f2 | tr -d ";")
@@ -67,11 +67,18 @@ jobs:
     needs: get_approval
     runs-on: self-hosted
     steps:
+      
+      - name: debug outputs
+        run: |
+          echo "Active port: ${{ needs.server_setup.outputs.active_port }}"
+          echo "Target port: ${{ needs.server_setup.outputs.target_port }}"
+
 
       - name: port edit
         run: |
           ACTIVE_PORT="${{ needs.server_setup.outputs.active_port }}"
           TARGET_PORT="${{ needs.server_setup.outputs.target_port }}"
+          echo "ACTIVE_PORT=$ACTIVE_PORT, TARGET_PORT=$TARGET_PORT"
           sudo sed -i "s/$ACTIVE_PORT/$TARGET_PORT/g" /etc/nginx/conf.d/app.conf
           sudo service nginx reload
           echo " serving on new port "
