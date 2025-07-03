@@ -8,6 +8,9 @@ on:
 
 jobs:
   server_setup:
+    outputs:
+      active_port: ${{ steps.identify.outputs.active }}
+      target_port: ${{ steps.identify.outputs.target }}
     runs-on: self-hosted
     steps:
 
@@ -30,23 +33,25 @@ jobs:
           sleep 10
           
       - name: identify active port
+        id: identify
         run: |
-          active=$(grep "808[12]" nginxapp.conf | cut -d: -f2 | tr -d ";")
+          active=$(grep "808[12]" /etc/nginx/conf.d/app.conf | cut -d: -f2 | tr -d ";")
           if [[ "$active" = "8081" ]];then 
             target="8082"
           else
             target="8081"
           fi
 
-          echo "ACTIVE_PORT=$active" >> $GITHUB_ENV
-          echo "TARGET_PORT=$target" >> $GITHUB_ENV
+          echo "active=$active" >> $GITHUB_OUTPUT
+          echo "target=$target" >> $GITHUB_OUTPUT
 
 
       - name: deploy on target
         run: |
           sudo docker pull sri1800/todo_app:latest
-          sudo docker run -d --name web_app_$TARGET_PORT --env-file ./var.env -p $TARGET_PORT:8081 sri1800/todo_app:latest
-          
+          sudo docker run -d --name web_app_$target --env-file ./var.env -p $target:8081 sri1800/todo_app:latest  
+          sleep 20
+          echo "approve port switch"
 
   get_approval:
     needs: server_setup
@@ -55,8 +60,8 @@ jobs:
       name: production
     steps:
 
-      - name: approve 
-        run: echo "approve port switch"
+      - name: approve
+        
 
 
 
@@ -67,38 +72,51 @@ jobs:
 
       - name: port edit
         run: |
+          ACTIVE_PORT="${{ needs.server_setup.outputs.active_port }}"
+          TARGET_PORT="${{ needs.server_setup.outputs.target_port }}"
           sudo sed -i "s/$ACTIVE_PORT/$TARGET_PORT/g" /etc/nginx/conf.d/app.conf
           sudo service nginx reload
           echo " serving on new port "
 
-  manualtestapprove:
+  curltest:
+    outputs:
+      result: ${{ steps.test.outputs.result }}
     needs: nginx_reload
     runs-on: ubuntu-latest
-    environment:
-      name: production
 
     steps:
-      - name: manualtestapproval
-        run: echo "approve if testok , reject if testko"
+      - name: curltest
+        id: test
+        run: |
+          result=$(curl -o /dev/null -s -w "%{http_code}\n" http://13.126.0.146/login)
+
+          echo "result=$result" >> GITHUB_OUTPUT
+
+        
 
   killcontainer:
-    needs: manualtestapprove
+    needs: curltest
     runs-on: self-hosted
     steps:
 
-      - name: if testok 
+      - name: revert or decom
         run: |
-          sudo docker stop web_app_$ACTIVE_PORT 
-          sudo docker rm web_app_$ACTIVE_PORT
+          RESULT="${{ needs.curltest.outputs.result }}"
+          ACTIVE_PORT="${{ needs.server_setup.outputs.active_port }}"
+          TARGET_PORT="${{ needs.server_setup.outputs.target_port }}"
 
-      - name: if testko
-        run: |
-          sudo docker stop web_app_$TARGET_PORT
-          sudo docker rm web_app_$TARGET_PORT
-          echo "killed faulty container reverting nginx to old"
-          sudo sed -i "s/$TARGET_PORT/$ACTIVE_PORT/g" /etc/nginx/conf.d/app.conf
-          sudo service nginx reload
-          echo " serving on old port "
+          if [[ "$RESULT" != "404" ]]; then
+            sudo docker stop web_app_$ACTIVE_PORT 
+            sudo docker rm web_app_$ACTIVE_PORT
+          else
+
+            sudo docker stop web_app_$TARGET_PORT
+            sudo docker rm web_app_$TARGET_PORT
+            echo "killed faulty container reverting nginx to old"
+            sudo sed -i "s/$TARGET_PORT/$ACTIVE_PORT/g" /etc/nginx/conf.d/app.conf
+            sudo service nginx reload
+            echo " serving on old port "
+          fi
 
 
   
