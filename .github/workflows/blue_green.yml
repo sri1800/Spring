@@ -44,8 +44,8 @@ jobs:
 
       - name: deploy on target
         run: |
-          docker pull sri1800/todo_app:latest
-          docker run -d --name web_app_$TARGET_PORT --env-file ./var.env -p $TARGET_PORT:8081 sri1800/todo_app:latest
+          sudo docker pull sri1800/todo_app:latest
+          sudo docker run -d --name web_app_$TARGET_PORT --env-file ./var.env -p $TARGET_PORT:8081 sri1800/todo_app:latest
           
 
   get_approval:
