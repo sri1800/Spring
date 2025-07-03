@@ -36,16 +36,17 @@ jobs:
         id: identify
         run: |
           active=$(sudo grep "808[12]" /etc/nginx/conf.d/app.conf | cut -d: -f2 | tr -d ";")
+          echo "Identified active port: '$active'"
           if [[ "$active" = "8081" ]];then 
             target="8082"
           else
             target="8081"
           fi
-
+          echo "Switch target port: '$target'"
           sudo docker pull sri1800/todo_app:latest
           sudo docker run -d --name web_app_$target --env-file ./var.env -p $target:8081 sri1800/todo_app:latest  
-          echo "active=$active" >> $GITHUB_OUTPUT
-          echo "target=$target" >> $GITHUB_OUTPUT
+          sudo echo "active=$active" >> $GITHUB_OUTPUT
+          sudo echo "target=$target" >> $GITHUB_OUTPUT
           sleep 20
 
           echo "approve port switch"
