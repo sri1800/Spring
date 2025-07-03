@@ -42,15 +42,12 @@ jobs:
             target="8081"
           fi
 
-          echo "active=$active" >> $GITHUB_OUTPUT
-          echo "target=$target" >> $GITHUB_OUTPUT
-
-
-      - name: deploy on target
-        run: |
           sudo docker pull sri1800/todo_app:latest
           sudo docker run -d --name web_app_$target --env-file ./var.env -p $target:8081 sri1800/todo_app:latest  
+          echo "active=$active" >> $GITHUB_OUTPUT
+          echo "target=$target" >> $GITHUB_OUTPUT
           sleep 20
+
           echo "approve port switch"
 
   get_approval:
