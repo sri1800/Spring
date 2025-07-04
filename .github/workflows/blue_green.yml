@@ -53,15 +53,15 @@ jobs:
 
           echo "approve port switch"
 
-  # get_approval:
-  #   needs: server_setup
-  #   runs-on: ubuntu-latest
-  #   environment:
-  #     name: production
-  #   steps:
+  get_approval:
+    needs: server_setup
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    steps:
 
-  #     - name: approve
-  #       run: echo "approved port switch"
+      - name: approve
+        run: echo "approved port switch"
         
 
 
@@ -71,13 +71,6 @@ jobs:
     runs-on: self-hosted
     
     steps:
-
-        
-      # - name: debug outputs
-        
-      #   run: |
-      #     echo "Active port: ${{needs.server_setup.outputs.active_port}}"
-      #     echo "Target port: ${{needs.server_setup.outputs.target_port}}"
 
 
       - name: port edit
