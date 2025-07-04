@@ -92,7 +92,9 @@ jobs:
       - name: curltest
         id: test
         run: |
-          result=$(curl -o /dev/null -s -w "%{http_code}\n" http://35.154.23.231/login)
+          #result=$(curl -o /dev/null -s -w "%{http_code}\n" http://35.154.23.231/login)
+
+          result=$(curl -s -o /dev/null -w "%{http_code}\n" -X POST -H "Content-Type: application/json" -d '{"email":"abc@com","password":"123456789"}' http://35.154.23.231/login)
 
           echo "result=$result" >> "$GITHUB_OUTPUT"
 
@@ -111,16 +113,18 @@ jobs:
           TARGET_PORT: ${{needs.server_setup.outputs.target_port}}
 
         run: |
-          if [[ "$RESULT" != "404" ]]; then
+          if [[ "$RESULT" = "200" ]]; then
+            echo "removing old container"
             docker stop web_app_$ACTIVE_PORT 
             docker rm web_app_$ACTIVE_PORT
           else
             docker stop web_app_$TARGET_PORT
             docker rm web_app_$TARGET_PORT
-            echo "killed faulty container reverting nginx to old"
+            echo "killed faulty container reverting traffic to old"
             sudo sed -i "s/$TARGET_PORT/$ACTIVE_PORT/g" /etc/nginx/conf.d/app.conf
             sudo service nginx reload
-            echo " serving on old port "
+            echo " serving on old port again testing .....http code below "
+            curl -s -o /dev/null -w "%{http_code}\n" -X POST -H "Content-Type: application/json" -d '{"email":"abc@com","password":"123456789"}' http://35.154.23.231/login
           fi
 
 
