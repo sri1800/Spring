@@ -53,21 +53,21 @@ jobs:
 
           echo "approve port switch"
 
-  get_approval:
-    needs: server_setup
-    runs-on: ubuntu-latest
-    environment:
-      name: production
-    steps:
+  # get_approval:
+  #   needs: server_setup
+  #   runs-on: ubuntu-latest
+  #   environment:
+  #     name: production
+  #   steps:
 
-      - name: approve
-        run: echo "approved port switch"
+  #     - name: approve
+  #       run: echo "approved port switch"
         
 
 
 
   nginx_reload:
-    needs: get_approval
+    needs: server_setup
     runs-on: self-hosted
     
     steps:
