@@ -15,12 +15,14 @@ jobs:
     steps:
 
       - name: download ansible
-        run: sudo yum install ansible -y
+        run: | 
+          sudo yum install ansible -y
+          
 
       - name: setup localhost in ansible
         run: |
           echo "$(hostname -i) ansible_connection=local" | sudo tee /etc/ansible/hosts
-
+          su ec2-user
       
       - name: checkout repo
         uses: actions/checkout@v4
@@ -29,13 +31,13 @@ jobs:
       - name: run play
         run: |
           cd /home/ec2-user/actions-runner/_work/todoApp_backend/todoApp_backend
-          sudo ansible-playbook bluegreen_play.yml
-          sleep 10
+          ansible-playbook bluegreen_play.yml
+          sleep 5
           
       - name: identify active port and start container
         id: identify
         run: |
-          active=$(sudo grep "808[12]" /etc/nginx/conf.d/app.conf | cut -d: -f2 | tr -d ";")
+          active=$(grep "808[12]" /etc/nginx/conf.d/app.conf | cut -d: -f2 | tr -d ";")
           echo "Identified active port: '$active'"
           if [[ "$active" = "8081" ]];then 
             target="8082"
@@ -43,10 +45,10 @@ jobs:
             target="8081"
           fi
           echo "Switch target port: '$target'"
-          sudo docker pull sri1800/todo_app:latest
-          sudo docker run -d --name web_app_$target --env-file ./var.env -p $target:8081 sri1800/todo_app:latest  
-          sudo /bin/bash -c "echo \"active=$active\" >> $GITHUB_OUTPUT"
-          sudo /bin/bash -c "echo \"target=$target\" >> $GITHUB_OUTPUT"
+          docker pull sri1800/todo_app:latest
+          docker run -d --name web_app_$target --env-file ./var.env -p $target:8081 sri1800/todo_app:latest  
+          echo "active=$active" >> $GITHUB_OUTPUT
+          echo "target=$target" >> $GITHUB_OUTPUT
 
           sleep 20
 
@@ -83,6 +85,7 @@ jobs:
           echo "ACTIVE_PORT=$ACTIVE_PORT, TARGET_PORT=$TARGET_PORT"
           sudo sed -i "s/$ACTIVE_PORT/$TARGET_PORT/g" /etc/nginx/conf.d/app.conf
           sudo service nginx reload
+          su ec2-user
           echo " serving on new port "
 
   curltest:
@@ -95,7 +98,7 @@ jobs:
       - name: curltest
         id: test
         run: |
-          result=$(curl -o /dev/null -s -w "%{http_code}\n" http://13.126.0.146/login)
+          result=$(curl -o /dev/null -s -w "%{http_code}\n" http://35.154.23.231/login)
 
           echo "result=$result" >> GITHUB_OUTPUT
 
@@ -113,12 +116,12 @@ jobs:
           TARGET_PORT="${{ needs.server_setup.outputs.target_port }}"
 
           if [[ "$RESULT" != "404" ]]; then
-            sudo docker stop web_app_$ACTIVE_PORT 
-            sudo docker rm web_app_$ACTIVE_PORT
+            docker stop web_app_$ACTIVE_PORT 
+            docker rm web_app_$ACTIVE_PORT
           else
 
-            sudo docker stop web_app_$TARGET_PORT
-            sudo docker rm web_app_$TARGET_PORT
+            docker stop web_app_$TARGET_PORT
+            docker rm web_app_$TARGET_PORT
             echo "killed faulty container reverting nginx to old"
             sudo sed -i "s/$TARGET_PORT/$ACTIVE_PORT/g" /etc/nginx/conf.d/app.conf
             sudo service nginx reload
