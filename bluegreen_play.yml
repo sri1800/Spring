@@ -1,0 +1,27 @@
+---
+
+- name: install required softwares
+  hosts: all
+  become: true
+  vars:
+    pkgs: [docker,nginx]
+
+  tasks:
+
+    - name: install pkgs
+      yum:
+        name: "{{item}}"
+        state: present
+      loop: "{{pkgs}}"
+
+
+    - name: start docker
+      systemd_service:
+        name: docker
+        state: started
+      
+    - name: start nginx
+      service:
+        name: nginx
+        state: started
+      

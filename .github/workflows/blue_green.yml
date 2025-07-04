@@ -1,0 +1,134 @@
+name: deploy bluegreen
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+jobs:
+  server_setup:
+    outputs:
+      active_port: ${{ steps.identify.outputs.active }}
+      target_port: ${{ steps.identify.outputs.target }}
+    runs-on: self-hosted
+    steps:
+
+      - name: download ansible
+        run: | 
+          sudo yum install ansible -y
+          
+
+      - name: setup localhost in ansible
+        run: |
+          echo "$(hostname -i) ansible_connection=local" | sudo tee /etc/ansible/hosts
+      
+      - name: checkout repo
+        uses: actions/checkout@v4
+ 
+
+      - name: run play
+        run: |
+          cd /home/ec2-user/actions-runner/_work/todoApp_backend/todoApp_backend
+          ansible-playbook bluegreen_play.yml
+          sleep 5
+          
+      - name: identify active port and start container
+        id: identify
+        run: |
+          active=$(sudo grep "808[12]" /etc/nginx/conf.d/app.conf | cut -d: -f2 | tr -d ";")
+          echo "Identified active port: '$active'"
+          if [[ "$active" = "8081" ]];then 
+            target="8082"
+          else
+            target="8081"
+          fi
+          echo "Switch target port: '$target'"
+          docker pull sri1800/todo_app:latest
+          docker run -d --name web_app_$target --env-file ./var.env -p $target:8081 sri1800/todo_app:latest  
+          echo "active=$active" >> "$GITHUB_OUTPUT"
+          echo "target=$target" >> "$GITHUB_OUTPUT"
+
+          sleep 20
+
+          echo "approve port switch"
+
+  get_approval:
+    needs: server_setup
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    steps:
+
+      - name: approve
+        run: echo "approved port switch"
+        
+
+
+
+  nginx_reload:
+    needs: [server_setup, get_approval]
+    runs-on: self-hosted
+    
+    steps:
+
+
+      - name: port edit
+        env:
+          ACTIVE_PORT: ${{needs.server_setup.outputs.active_port}}
+          TARGET_PORT: ${{needs.server_setup.outputs.target_port}}
+        run: |
+          sudo sed -i "s/$ACTIVE_PORT/$TARGET_PORT/g" /etc/nginx/conf.d/app.conf
+          sudo service nginx reload
+          echo " serving on new port "
+
+  curltest:
+    outputs:
+      result: ${{ steps.test.outputs.result }}
+    needs: nginx_reload
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: curltest
+        id: test
+        run: |
+          #result=$(curl -o /dev/null -s -w "%{http_code}\n" http://35.154.23.231/login)
+
+          result=$(curl -s -o /dev/null -w "%{http_code}\n" -X POST -H "Content-Type: application/json" -d '{"email":"abc@com","password":"12345789"}' http://35.154.23.231/login)
+
+          echo "result=$result" >> "$GITHUB_OUTPUT"
+
+        
+
+  killcontainer:
+    needs: [server_setup, curltest]
+    runs-on: self-hosted
+    steps:
+
+        
+      - name: revert or decom
+        env:
+          RESULT: ${{needs.curltest.outputs.result}}
+          ACTIVE_PORT: ${{needs.server_setup.outputs.active_port}}
+          TARGET_PORT: ${{needs.server_setup.outputs.target_port}}
+
+        run: |
+          if [[ "$RESULT" = "200" ]]; then
+            echo "removing old container"
+            docker stop web_app_$ACTIVE_PORT 
+            docker rm web_app_$ACTIVE_PORT
+          else
+            docker stop web_app_$TARGET_PORT
+            docker rm web_app_$TARGET_PORT
+            echo "killed faulty container reverting traffic to old"
+            sudo sed -i "s/$TARGET_PORT/$ACTIVE_PORT/g" /etc/nginx/conf.d/app.conf
+            sudo service nginx reload
+            sleep 3
+            echo " serving on old port again testing .....http code below "
+            curl -s -o /dev/null -w "%{http_code}\n" -X POST -H "Content-Type: application/json" -d '{"email":"abc@com","password":"123456789"}' http://35.154.23.231/login
+          fi
+
+
+  
+
+
