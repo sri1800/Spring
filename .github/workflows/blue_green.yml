@@ -67,7 +67,7 @@ jobs:
 
 
   nginx_reload:
-    needs: server_setup
+    needs: [server_setup, get_approval]
     runs-on: self-hosted
     
     steps:
