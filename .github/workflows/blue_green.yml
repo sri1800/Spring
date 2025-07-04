@@ -22,7 +22,6 @@ jobs:
       - name: setup localhost in ansible
         run: |
           echo "$(hostname -i) ansible_connection=local" | sudo tee /etc/ansible/hosts
-          su ec2-user
       
       - name: checkout repo
         uses: actions/checkout@v4
@@ -37,7 +36,7 @@ jobs:
       - name: identify active port and start container
         id: identify
         run: |
-          active=$(grep "808[12]" /etc/nginx/conf.d/app.conf | cut -d: -f2 | tr -d ";")
+          active=$(sudo grep "808[12]" /etc/nginx/conf.d/app.conf | cut -d: -f2 | tr -d ";")
           echo "Identified active port: '$active'"
           if [[ "$active" = "8081" ]];then 
             target="8082"
@@ -47,8 +46,8 @@ jobs:
           echo "Switch target port: '$target'"
           docker pull sri1800/todo_app:latest
           docker run -d --name web_app_$target --env-file ./var.env -p $target:8081 sri1800/todo_app:latest  
-          echo "active=$active" >> $GITHUB_OUTPUT
-          echo "target=$target" >> $GITHUB_OUTPUT
+          echo "active=$active" >> "$GITHUB_OUTPUT"
+          echo "target=$target" >> "$GITHUB_OUTPUT"
 
           sleep 20
 
@@ -70,22 +69,24 @@ jobs:
   nginx_reload:
     needs: get_approval
     runs-on: self-hosted
+    
     steps:
+
+      - env:
+          ACTIVE_PORT:"${{needs.server_setup.outputs.active_port}}"
+          TARGET_PORT:"${{needs.server_setup.outputs.target_port}}"
       
       - name: debug outputs
         run: |
-          echo "Active port: ${{ needs.server_setup.outputs.active_port }}"
-          echo "Target port: ${{ needs.server_setup.outputs.target_port }}"
+          echo "Active port: ${{needs.server_setup.outputs.active_port}}"
+          echo "Target port: ${{needs.server_setup.outputs.target_port}}"
 
 
       - name: port edit
         run: |
-          ACTIVE_PORT="${{ needs.server_setup.outputs.active_port }}"
-          TARGET_PORT="${{ needs.server_setup.outputs.target_port }}"
           echo "ACTIVE_PORT=$ACTIVE_PORT, TARGET_PORT=$TARGET_PORT"
           sudo sed -i "s/$ACTIVE_PORT/$TARGET_PORT/g" /etc/nginx/conf.d/app.conf
           sudo service nginx reload
-          su ec2-user
           echo " serving on new port "
 
   curltest:
@@ -100,7 +101,7 @@ jobs:
         run: |
           result=$(curl -o /dev/null -s -w "%{http_code}\n" http://35.154.23.231/login)
 
-          echo "result=$result" >> GITHUB_OUTPUT
+          echo "result=$result" >> "GITHUB_OUTPUT"
 
         
 
@@ -109,17 +110,17 @@ jobs:
     runs-on: self-hosted
     steps:
 
+      - env:
+          RESULT="${{needs.curltest.outputs.result}}"
+          ACTIVE_PORT="${{needs.server_setup.outputs.active_port}}"
+          TARGET_PORT="${{needs.server_setup.outputs.target_port}}"
+
       - name: revert or decom
         run: |
-          RESULT="${{ needs.curltest.outputs.result }}"
-          ACTIVE_PORT="${{ needs.server_setup.outputs.active_port }}"
-          TARGET_PORT="${{ needs.server_setup.outputs.target_port }}"
-
           if [[ "$RESULT" != "404" ]]; then
             docker stop web_app_$ACTIVE_PORT 
             docker rm web_app_$ACTIVE_PORT
           else
-
             docker stop web_app_$TARGET_PORT
             docker rm web_app_$TARGET_PORT
             echo "killed faulty container reverting nginx to old"
