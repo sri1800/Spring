@@ -106,7 +106,7 @@ jobs:
         
 
   killcontainer:
-    needs: curltest
+    needs: [server_setup, curltest]
     runs-on: self-hosted
     steps:
 
