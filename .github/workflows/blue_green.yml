@@ -94,7 +94,7 @@ jobs:
         run: |
           #result=$(curl -o /dev/null -s -w "%{http_code}\n" http://35.154.23.231/login)
 
-          result=$(curl -s -o /dev/null -w "%{http_code}\n" -X POST -H "Content-Type: application/json" -d '{"email":"abc@com","password":"123456789"}' http://35.154.23.231/login)
+          result=$(curl -s -o /dev/null -w "%{http_code}\n" -X POST -H "Content-Type: application/json" -d '{"email":"abc@com","password":"12345789"}' http://35.154.23.231/login)
 
           echo "result=$result" >> "$GITHUB_OUTPUT"
 
