@@ -123,6 +123,7 @@ jobs:
             echo "killed faulty container reverting traffic to old"
             sudo sed -i "s/$TARGET_PORT/$ACTIVE_PORT/g" /etc/nginx/conf.d/app.conf
             sudo service nginx reload
+            sleep 3
             echo " serving on old port again testing .....http code below "
             curl -s -o /dev/null -w "%{http_code}\n" -X POST -H "Content-Type: application/json" -d '{"email":"abc@com","password":"123456789"}' http://35.154.23.231/login
           fi
