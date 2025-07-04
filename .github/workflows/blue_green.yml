@@ -101,7 +101,7 @@ jobs:
         run: |
           result=$(curl -o /dev/null -s -w "%{http_code}\n" http://35.154.23.231/login)
 
-          echo "result=$result" >> "GITHUB_OUTPUT"
+          echo "result=$result" >> "$GITHUB_OUTPUT"
 
         
 
