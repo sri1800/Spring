@@ -82,10 +82,9 @@ jobs:
 
       - name: port edit
         env:
-          ACTIVE_PORT:"${{needs.server_setup.outputs.active_port}}"
-          TARGET_PORT:"${{needs.server_setup.outputs.target_port}}"
+          ACTIVE_PORT: ${{needs.server_setup.outputs.active_port}}
+          TARGET_PORT: ${{needs.server_setup.outputs.target_port}}
         run: |
-          echo "ACTIVE_PORT=$ACTIVE_PORT, TARGET_PORT=$TARGET_PORT"
           sudo sed -i "s/$ACTIVE_PORT/$TARGET_PORT/g" /etc/nginx/conf.d/app.conf
           sudo service nginx reload
           echo " serving on new port "
@@ -114,9 +113,9 @@ jobs:
         
       - name: revert or decom
         env:
-          RESULT="${{needs.curltest.outputs.result}}"
-          ACTIVE_PORT="${{needs.server_setup.outputs.active_port}}"
-          TARGET_PORT="${{needs.server_setup.outputs.target_port}}"
+          RESULT: ${{needs.curltest.outputs.result}}
+          ACTIVE_PORT: ${{needs.server_setup.outputs.active_port}}
+          TARGET_PORT: ${{needs.server_setup.outputs.target_port}}
 
         run: |
           if [[ "$RESULT" != "404" ]]; then
